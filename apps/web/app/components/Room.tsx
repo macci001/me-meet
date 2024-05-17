@@ -66,17 +66,31 @@ const Room = () => {
             }
 
             peerPc.ontrack = (event) => {
-                if (receiverVideoRef && receiverVideoRef.current) {
-                    receiverVideoRef.current.srcObject = new MediaStream([event.track]);
-                    receiverVideoRef.current?.play();
+                const id = Math.floor(peer.userId / 100);
+                if (id == userId) {
+                    return;
+                }
+                const receiverElement: HTMLVideoElement = document.getElementById("user" + id.toString()) as unknown as HTMLVideoElement;
+                if (receiverElement) {
+                    receiverElement.srcObject = new MediaStream([event.track]);
+                    receiverElement.play();
                 }
             }
         })
     }, [pc]);
 
     return <div>
+        {
+            pc.map((peer) => {
+                const userId:number = Number (sessionStorage.getItem("userId"));
+                const id = peer.userId;
+                if(Math.floor(id / 100) == userId) {
+                    return <video className="w-[40vw] h-[23vw] m-10 bg-red-200" id={"user" + (id % 100).toString()} key={"user" + (id % 100).toString()}></video>
+                } 
+                return null;
+            })
+        }
         <video className="w-[40vw] h-[23vw] m-10 bg-red-200" ref={senderVideoRef}>Sender</video>
-        <video className="w-[40vw] h-[23vw] m-10 bg-red-200" ref={receiverVideoRef} >Receiver</video>
     </div>
 }
 export default Room;
