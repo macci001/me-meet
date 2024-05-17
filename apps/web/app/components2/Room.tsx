@@ -1,7 +1,6 @@
 "use client"
 import { useEffect, useState, useRef, use } from "react";
-import { joinCallHandler, serverMessagesHandler } from "../utils/handlers/SocketMessageHandlers";
-
+import { joinCallHandler, serverMessagesHandler } from "../handlers/SocketMessageHandlers";
 
 const Room = () => {
     const [socket, setSocket] = useState<WebSocket | null>(null);

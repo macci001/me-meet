@@ -1,5 +1,5 @@
 import { messageType } from "@repo/schema/MessageType";
-import { createAnswerUtil, createOfferUtil, iceCandidateFromReceiverUtil, iceCandidateFromSenderUtil, joinedUtil, requestToSendUtil } from "../handlerUtils";
+import { createAnswerUtil, createOfferUtil, iceCandidateFromReceiverUtil, iceCandidateFromSenderUtil, joinedUtil, requestToSendUtil } from "../utils/handlerUtils";
 
 export const joinCallHandler = (socket: WebSocket) => {
     const userId:number = Number (sessionStorage.getItem("userId") ? sessionStorage.getItem("userId") : -1);
