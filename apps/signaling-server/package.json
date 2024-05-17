@@ -4,12 +4,14 @@
   "private": true,
   "scripts": {
     "dev": "tsc -b && node ./dist/index.js",
-    "build": "echo 'Add build script here'",
+    "build": "tsc -b",
     "test": "echo 'Add test script here'",
     "lint": "echo 'Add lint script here'"
   },
   "dependencies": {
+    "@repo/schema": "*",
     "@types/ws": "^8.5.10",
+    "typescript": "^5.4.5",
     "ws": "^8.17.0"
   }
 }

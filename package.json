@@ -23,7 +23,6 @@
   ],
   "dependencies": {
     "dotenv": "^16.4.5",
-    "zod": "^3.23.8",
-    "@repo/schema": "*"
+    "zod": "^3.23.8"
   }
 }
