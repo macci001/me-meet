@@ -2,6 +2,7 @@
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import Room from "./components/Room";
+import HomePage from "./components/HomePage";
 
 export default function Page(): JSX.Element {
   const [input, setInput] = useState<string>("");
@@ -14,11 +15,7 @@ export default function Page(): JSX.Element {
         isRoomJoined && input ? <>
           <Room roomName={input}></Room>
         </> : <>
-          <span>Hello {user?.name}</span>  
-          <div>
-            <input onChange={(e) => (setInput(e.target.value))} className="bg-red-200"></input>
-            <button onClick={() => setIsRoomJoined(true)}>Join</button>
-          </div>
+          <HomePage user={user} setInput={setInput} setIsRoomJoined={setIsRoomJoined}/>
         </> 
       }
     </div>

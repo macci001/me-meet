@@ -14,7 +14,7 @@ const Room = ({roomName} : {roomName: string}) => {
             const peerPc = peer.pc;
             const senderId = Math.floor(id / 100);
             if (senderId == userId) {
-                navigator.mediaDevices.getDisplayMedia({video: true}).then((stream) => {
+                navigator.mediaDevices.getUserMedia({video: true, audio: true}).then((stream) => {
                     if(senderVideoRef != null && senderVideoRef.current!=null) {
                         senderVideoRef.current.srcObject = stream;
                         senderVideoRef.current.play();
@@ -102,18 +102,32 @@ const Room = ({roomName} : {roomName: string}) => {
 
     return <div>
         {
-            pc.map((peer) => {
-                const userId:number = Number (sessionStorage.getItem("userId"));
-                const id = peer.userId;
-                if(Math.floor(id / 100) == userId) {
-                    return <video className="w-[40vw] h-[23vw] m-10 bg-red-200" id={"user" + (id % 100).toString()} key={"receiver" + (id % 100).toString()}></video>
-                } 
-                return null;
-            })
+            !pc || pc.length == 0 ? <div className="w-[100vw] font-semibold h-[20vw] flex justify-center items-center bg-fuchsia-200 text-fuchsia-700 shadow-inner">
+                Nobody has joined the call. We have to wait for others to join.
+            </div> : <>
+            <div className="h-[80vh] w-[100vw] flex flex-wrap justify-around items-center">
+            {
+                pc.map((peer) => {
+                    const userId:number = Number (sessionStorage.getItem("userId"));
+                    const id = peer.userId;
+                    if(Math.floor(id / 100) == userId) {
+                        return <video className="w-[150vh] h-[75vh] bg-fuchsia-100" id={"user" + (id % 100).toString()} key={"receiver" + (id % 100).toString()}></video>
+                    } 
+                    return null;
+                })
+            }
+            </div>
+            <div>
+                <video className="w-[30vmin] h-[20vmax] md:w-[30vmax] md:h-[15vmax] 2xl:w[14-vmax] 2xl:h-[7-vmax] bg-fuchsia-100 fixed bottom-[8vh] right-[1vw]" ref={senderVideoRef} key={"sender"}>Sender</video>
+            </div>
+            </>
+            
         }
-        <video className="w-[40vw] h-[23vw] m-10 bg-red-200" ref={senderVideoRef} key={"sender"}>Sender</video>
-        <button onClick={addTracks}>ON</button>
-        <button onClick={removeTracks}>OFF</button>
+        
+        <div className="w-[100vw] h-[7vh] bg-fuchsia-50 fixed bottom-0 flex justify-center items-center gap-[5vw]">
+            <button onClick={addTracks} className="w-[10vh] h-[4vh] bg-fuchsia-200 shadow-inner rounded-[5vh] font-medium hover:bg-fuchsia-400">ON</button>
+            <button onClick={removeTracks} className="w-[10vh] h-[4vh] bg-fuchsia-200 shadow-inner rounded-[5vh] font-medium hover:bg-fuchsia-400">OFF</button>
+        </div>
     </div>
 }
 export default Room;
