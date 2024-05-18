@@ -1,9 +1,8 @@
 "use client"
 import { useEffect, useState, useRef, use } from "react";
 import { joinCallHandler, serverMessagesHandler } from "../handlers/SocketMessageHandlers";
-import { table } from "console";
 
-const Room = () => {
+const Room = ({roomName} : {roomName: string}) => {
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const [pc, setPc] = useState<Array<PeerConnection>>([]);
     const senderVideoRef = useRef<HTMLVideoElement>(null);
@@ -47,8 +46,8 @@ const Room = () => {
     useEffect(() => {
         const socket = new WebSocket("ws://localhost:8080");
         setSocket(socket);
-
-        socket.onopen = () => joinCallHandler(socket);
+        const roomNameFinal = !roomName ? "hello" : roomName;
+        socket.onopen = () => joinCallHandler(socket, roomName);
         
         socket.onmessage = async (event) => {
             const message = JSON.parse(event.data);
