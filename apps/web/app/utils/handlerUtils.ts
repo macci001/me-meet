@@ -38,7 +38,7 @@ export const createOfferUtil = (message: any, socket: WebSocket, pc: Array<PeerC
     let peerPc:any;
     if(peerIndex === -1) {
         peerPc = new RTCPeerConnection();
-        const peer: PeerConnection = {pc: peerPc, userId: (fromUserId * 100 + userId)};
+        const peer: PeerConnection = {pc: peerPc, userId: (fromUserId * 100 + userId), track: []};
         pc.push(peer); 
         sessionStorage.setItem("pc", JSON.stringify(pc));
         setPc([...pc]);
@@ -139,7 +139,7 @@ export const createOfferUtil = (message: any, socket: WebSocket, pc: Array<PeerC
 
     if(pc.findIndex(p => p.userId == peerId) == -1) {
         const peer = new RTCPeerConnection();
-        const peerPc: PeerConnection = {pc: peer, userId: peerId};
+        const peerPc: PeerConnection = {pc: peer, userId: peerId, track: []};
         pc.push(peerPc);
         setPc([...pc]);
     }

@@ -1,25 +1,48 @@
 "use client"
 import { useEffect, useState, useRef, use } from "react";
 import { joinCallHandler, serverMessagesHandler } from "../handlers/SocketMessageHandlers";
+import { table } from "console";
 
 const Room = () => {
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const [pc, setPc] = useState<Array<PeerConnection>>([]);
     const senderVideoRef = useRef<HTMLVideoElement>(null);
-    const receiverVideoRef = useRef<HTMLVideoElement>(null);
 
-    const getCameraStream = (pc: RTCPeerConnection) => {
-        navigator.mediaDevices.getDisplayMedia({video: true}).then((stream) => {
-            if(senderVideoRef != null && senderVideoRef.current!=null) {
-                senderVideoRef.current.srcObject = stream;
-                senderVideoRef.current.play();
+    const addTracks = () => {
+        const userId:number = Number (sessionStorage.getItem("userId"));
+        pc.map((peer) => {
+            const id = peer.userId;
+            const peerPc = peer.pc;
+            const senderId = Math.floor(id / 100);
+            if (senderId == userId) {
+                navigator.mediaDevices.getDisplayMedia({video: true}).then((stream) => {
+                    if(senderVideoRef != null && senderVideoRef.current!=null) {
+                        senderVideoRef.current.srcObject = stream;
+                        senderVideoRef.current.play();
+                    }
+                    stream.getTracks().forEach((track) => {
+                        peerPc?.addTrack(track);
+                        peer.track.push(track);
+                    });
+                })
             }
-            stream.getTracks().forEach((track) => {
-                pc?.addTrack(track);
-            });
         })
     }
 
+    const removeTracks = () => {
+        const userId:number = Number (sessionStorage.getItem("userId"));
+        pc.map((peer) => {
+            const id = peer.userId;
+            const peerPc = peer.pc;
+            const senderId = Math.floor(id / 100);
+            if (senderId == userId) {
+                peer.track.map((t) => {
+                    t.enabled = false;
+                })
+            }
+            
+        })
+    }
 
     useEffect(() => {
         const socket = new WebSocket("ws://localhost:8080");
@@ -45,8 +68,7 @@ const Room = () => {
                     const offer = await peerPc.createOffer();
                     await peerPc.setLocalDescription(offer);
                     socket?.send(JSON.stringify({type: "createOffer", toUserId: (peer.userId % 100), fromUserId: userId, sdp: offer, roomId: roomId}));
-                }   
-                getCameraStream(peerPc);
+                } 
             } 
 
             peerPc.onicecandidate = (event) => {
@@ -85,12 +107,14 @@ const Room = () => {
                 const userId:number = Number (sessionStorage.getItem("userId"));
                 const id = peer.userId;
                 if(Math.floor(id / 100) == userId) {
-                    return <video className="w-[40vw] h-[23vw] m-10 bg-red-200" id={"user" + (id % 100).toString()} key={"user" + (id % 100).toString()}></video>
+                    return <video className="w-[40vw] h-[23vw] m-10 bg-red-200" id={"user" + (id % 100).toString()} key={"receiver" + (id % 100).toString()}></video>
                 } 
                 return null;
             })
         }
-        <video className="w-[40vw] h-[23vw] m-10 bg-red-200" ref={senderVideoRef}>Sender</video>
+        <video className="w-[40vw] h-[23vw] m-10 bg-red-200" ref={senderVideoRef} key={"sender"}>Sender</video>
+        <button onClick={addTracks}>ON</button>
+        <button onClick={removeTracks}>OFF</button>
     </div>
 }
 export default Room;
