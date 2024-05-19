@@ -2,6 +2,7 @@ import { messageType } from "@repo/schema/MessageType";
 import { createAnswerUtil, createOfferUtil, iceCandidateFromReceiverUtil, iceCandidateFromSenderUtil, joinedUtil, requestToSendUtil } from "../utils/handlerUtils";
 
 export const joinCallHandler = (socket: WebSocket, roomName:string) => {
+    sessionStorage.clear();
     const userId:number = Number (sessionStorage.getItem("userId") ? sessionStorage.getItem("userId") : -1);
     const roomId:number = Number (sessionStorage.getItem("roomId") ? sessionStorage.getItem("roomId") : -1);
     if(userId===-1 || roomId===-1){
