@@ -1,7 +1,18 @@
 import { WebSocket, WebSocketServer } from 'ws';
 import { Room } from './classes/Room';
+import express from "express";
+import http from "http";
 
-const wss = new WebSocketServer({ port: 8080 });
+const app = express();
+app.use(express.static("public"));
+const server = http.createServer(app);
+
+const wss = new WebSocket.Server({server});
+server.listen(8080);
+
+app.get("/", (req, res) => {
+  res.send("ME-MEET SERVER...");
+})
 
 let rooms: Array<Room> = []; 
 let idCounter = 0;

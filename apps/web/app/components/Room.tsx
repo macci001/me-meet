@@ -3,6 +3,7 @@ import { useEffect, useState, useRef, use } from "react";
 import { joinCallHandler, serverMessagesHandler } from "../handlers/SocketMessageHandlers";
 import ReceiverComponent from "./ReceiverCompnent";
 import SenderComponent from "./SenderComponent";
+import { config } from "dotenv";
 
 const Room = ({roomName} : {roomName: string}) => {
     const [socket, setSocket] = useState<WebSocket | null>(null);
@@ -15,7 +16,7 @@ const Room = ({roomName} : {roomName: string}) => {
             const peerPc = peer.pc;
             const senderId = Math.floor(id / 100);
             if (senderId == userId) {
-                navigator.mediaDevices.getDisplayMedia({video: true, audio: true}).then((stream) => {
+                navigator.mediaDevices.getUserMedia({video: true, audio: true}).then((stream) => {
                     const senderVideo = document.getElementById("senderVideoRef") as unknown as HTMLVideoElement;
                     if(senderVideo != null) {
                         senderVideo.srcObject = stream;
@@ -46,7 +47,7 @@ const Room = ({roomName} : {roomName: string}) => {
     }
 
     useEffect(() => {
-        const socket = new WebSocket("ws://localhost:8080");
+        const socket = new WebSocket("wss://smartlearner.pro");
         setSocket(socket);
         const roomNameFinal = !roomName ? "hello" : roomName;
         socket.onopen = () => joinCallHandler(socket, roomNameFinal);
