@@ -1,11 +1,12 @@
 "use client"
 import { useEffect, useState, useRef, use } from "react";
 import { joinCallHandler, serverMessagesHandler } from "../handlers/SocketMessageHandlers";
+import ReceiverComponent from "./ReceiverCompnent";
+import SenderComponent from "./SenderComponent";
 
 const Room = ({roomName} : {roomName: string}) => {
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const [pc, setPc] = useState<Array<PeerConnection>>([]);
-    const senderVideoRef = useRef<HTMLVideoElement>(null);
 
     const addTracks = () => {
         const userId:number = Number (sessionStorage.getItem("userId"));
@@ -14,10 +15,11 @@ const Room = ({roomName} : {roomName: string}) => {
             const peerPc = peer.pc;
             const senderId = Math.floor(id / 100);
             if (senderId == userId) {
-                navigator.mediaDevices.getUserMedia({video: true, audio: true}).then((stream) => {
-                    if(senderVideoRef != null && senderVideoRef.current!=null) {
-                        senderVideoRef.current.srcObject = stream;
-                        senderVideoRef.current.play();
+                navigator.mediaDevices.getDisplayMedia({video: true, audio: true}).then((stream) => {
+                    const senderVideo = document.getElementById("senderVideoRef") as unknown as HTMLVideoElement;
+                    if(senderVideo != null) {
+                        senderVideo.srcObject = stream;
+                        senderVideo.play();
                     }
                     stream.getTracks().forEach((track) => {
                         peerPc?.addTrack(track);
@@ -47,7 +49,7 @@ const Room = ({roomName} : {roomName: string}) => {
         const socket = new WebSocket("ws://localhost:8080");
         setSocket(socket);
         const roomNameFinal = !roomName ? "hello" : roomName;
-        socket.onopen = () => joinCallHandler(socket, roomName);
+        socket.onopen = () => joinCallHandler(socket, roomNameFinal);
         
         socket.onmessage = async (event) => {
             const message = JSON.parse(event.data);
@@ -111,17 +113,14 @@ const Room = ({roomName} : {roomName: string}) => {
                     const userId:number = Number (sessionStorage.getItem("userId"));
                     const id = peer.userId;
                     if(Math.floor(id / 100) == userId) {
-                        return <video className="w-[150vh] h-[75vh] bg-fuchsia-100" id={"user" + (id % 100).toString()} key={"receiver" + (id % 100).toString()}></video>
+                        return <ReceiverComponent id={"user" + (id % 100).toString()} key={"receiver" + (id % 100).toString()} />
                     } 
                     return null;
                 })
             }
             </div>
-            <div>
-                <video className="w-[30vmin] h-[20vmax] md:w-[30vmax] md:h-[15vmax] 2xl:w[14-vmax] 2xl:h-[7-vmax] bg-fuchsia-100 fixed bottom-[8vh] right-[1vw]" ref={senderVideoRef} key={"sender"}>Sender</video>
-            </div>
+            <SenderComponent id="senderVideoRef"/>
             </>
-            
         }
         
         <div className="w-[100vw] h-[7vh] bg-fuchsia-50 fixed bottom-0 flex justify-center items-center gap-[5vw]">
