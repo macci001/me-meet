@@ -94,10 +94,22 @@ const Room = ({roomName} : {roomName: string}) => {
                 if (id == userId) {
                     return;
                 }
-                const receiverElement: HTMLVideoElement = document.getElementById("user" + id.toString()) as unknown as HTMLVideoElement;
-                if (receiverElement) {
-                    receiverElement.srcObject = new MediaStream([event.track]);
-                    receiverElement.play();
+                if (event.track.kind == "video") {
+                    console.log("here in video");
+                    const receiverElement: HTMLVideoElement = document.getElementById("video" + id.toString()) as unknown as HTMLVideoElement;
+                    if(receiverElement) {
+                        receiverElement.srcObject = new MediaStream([event.track]);
+                        receiverElement.play();
+                    }
+                }
+                if (event.track.kind == "audio") {
+                    console.log("here in audio");
+                    const receiverElement: HTMLAudioElement = document.getElementById("audio" + id.toString()) as unknown as HTMLAudioElement;
+                    if(receiverElement) {
+                        console.log(receiverElement);
+                        receiverElement.srcObject = new MediaStream([event.track]);
+                        receiverElement.play();
+                    }
                 }
             }
         })
@@ -114,7 +126,7 @@ const Room = ({roomName} : {roomName: string}) => {
                     const userId:number = Number (sessionStorage.getItem("userId"));
                     const id = peer.userId;
                     if(Math.floor(id / 100) == userId) {
-                        return <ReceiverComponent id={"user" + (id % 100).toString()} key={"receiver" + (id % 100).toString()} />
+                        return <ReceiverComponent videoId={"video" + (id % 100).toString()} audioId={"audio" + (id % 100).toString()} key={"receiver" + (id % 100).toString()} />
                     } 
                     return null;
                 })
