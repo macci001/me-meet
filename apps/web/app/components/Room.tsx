@@ -9,26 +9,26 @@ const Room = ({roomName} : {roomName: string}) => {
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const [pc, setPc] = useState<Array<PeerConnection>>([]);
 
-    const addTracks = () => {
+    const addTracks = async () => {
         const userId:number = Number (sessionStorage.getItem("userId"));
+        const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
         pc.map((peer) => {
             const id = peer.userId;
             const peerPc = peer.pc;
             const senderId = Math.floor(id / 100);
             if (senderId == userId) {
-                navigator.mediaDevices.getUserMedia({video: true, audio: true}).then((stream) => {
-                    const senderVideo = document.getElementById("senderVideoRef") as unknown as HTMLVideoElement;
-                    if(senderVideo != null) {
-                        senderVideo.srcObject = stream;
-                        senderVideo.play();
-                    }
-                    stream.getTracks().forEach((track) => {
-                        peerPc?.addTrack(track);
-                        peer.track.push(track);
-                    });
-                })
+                stream.getTracks().forEach((track) => {
+                    peerPc?.addTrack(track);
+                    peer.track.push(track);
+                });
             }
         })
+        
+        const senderComponent = document.getElementById("senderVideoRef") as unknown as HTMLVideoElement;
+        if(senderComponent != null ){
+            senderComponent.srcObject = new MediaStream(stream.getVideoTracks());
+            senderComponent.play();
+        }
     }
 
     const removeTracks = () => {
