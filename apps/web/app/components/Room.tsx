@@ -3,11 +3,12 @@ import { useEffect, useState, useRef, use } from "react";
 import { joinCallHandler, serverMessagesHandler } from "../handlers/SocketMessageHandlers";
 import ReceiverComponent from "./ReceiverCompnent";
 import SenderComponent from "./SenderComponent";
-import { config } from "dotenv";
+import { motion } from "framer-motion";
 
 const Room = ({roomName} : {roomName: string}) => {
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const [pc, setPc] = useState<Array<PeerConnection>>([]);
+    const roomRef = useRef(null);
 
     const addTracks = async () => {
         const userId:number = Number (sessionStorage.getItem("userId"));
@@ -119,7 +120,7 @@ const Room = ({roomName} : {roomName: string}) => {
         {
             !pc || pc.length == 0 ? <div className="w-[100vw] font-semibold h-[20vw] flex justify-center items-center bg-fuchsia-200 text-fuchsia-700 shadow-inner">
                 Nobody has joined the call. We have to wait for others to join.
-            </div> : <>
+            </div> : <motion.div ref={roomRef}>
             <div className="h-[80vh] w-[100vw] flex flex-wrap justify-around items-center">
             {
                 pc.map((peer) => {
@@ -132,8 +133,8 @@ const Room = ({roomName} : {roomName: string}) => {
                 })
             }
             </div>
-            <SenderComponent id="senderVideoRef"/>
-            </>
+            <SenderComponent id="senderVideoRef" roomRef={roomRef}/>
+            </motion.div>
         }
         
         <div className="w-[100vw] h-[7vh] bg-fuchsia-50 fixed bottom-0 flex justify-center items-center gap-[5vw]">
