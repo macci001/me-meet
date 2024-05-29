@@ -1,5 +1,5 @@
 import { messageType } from "@repo/schema/MessageType";
-import { createAnswerUtil, createOfferUtil, iceCandidateFromReceiverUtil, iceCandidateFromSenderUtil, joinedUtil, requestToSendUtil } from "../utils/handlerUtils";
+import { createAnswerUtil, createOfferUtil, iceCandidateFromReceiverUtil, iceCandidateFromSenderUtil, joinedUtil, requestToSendUtil, handleCloseTrackUtil } from "../utils/handlerUtils";
 
 export const joinCallHandler = (socket: WebSocket, roomName:string) => {
     sessionStorage.clear();
@@ -44,6 +44,10 @@ export const serverMessagesHandler = (socket: WebSocket, pc: Array<PeerConnectio
         }
         case messageType.REQUEST_RECEIVER_TO_SEND: {
             requestToSendUtil(message, socket, pc, setPc);
+            break;
+        }
+        case messageType.CLOSE_TRACK: {
+            handleCloseTrackUtil(message);
             break;
         }
     }

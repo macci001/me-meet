@@ -6,5 +6,6 @@ export enum messageType {
     ICE_CANDIDATE_FROM_SENDER = "iceCandidateFromSender",
     ICE_CANDIDATE_FROM_RECEIVER = "iceCandidateFromReceiver",
     REQUEST_SENDER = "requestSender",
-    REQUEST_RECEIVER_TO_SEND = "requestReceiverToSend"
+    REQUEST_RECEIVER_TO_SEND = "requestReceiverToSend",
+    CLOSE_TRACK = "closeTrack"
 }

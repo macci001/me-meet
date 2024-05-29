@@ -4,6 +4,7 @@ import { messageType } from "@repo/schema/MessageType";
 import { CreateAnswer } from "@repo/schema/CreateAnswer";
 import { IceCandidate } from "@repo/schema/IceCandidate";
 import { SendRequest } from "@repo/schema/SendRequest";
+import { CloseTrackSchema } from "@repo/schema/CloseTrack";
 
 const getUserIdAndRoomId = () => {
     const userId: number = Number(sessionStorage.getItem("userId"));
@@ -155,4 +156,22 @@ export const createOfferUtil = (message: any, socket: WebSocket, pc: Array<PeerC
     }
 
     sessionStorage.setItem("pc", JSON.stringify(pc));
+ }
+
+ export const handleCloseTrackUtil = (message: any) => {
+    const parsed = CloseTrackSchema.safeParse(message);
+
+    if(!parsed.success) {
+        console.log("Issue while handling the close track request.");
+        console.log(parsed.error.message);
+        return;
+    }
+
+    const fromUserId = parsed.data.fromUserId;
+    const trackType = parsed.data.trackType;
+
+    const targetElement = trackType == "video" ?
+     document.getElementById(trackType + fromUserId.toString()) as unknown as HTMLVideoElement
+     : document.getElementById(trackType + fromUserId.toString()) as unknown as HTMLAudioElement;
+    targetElement && (targetElement.srcObject = null);
  }

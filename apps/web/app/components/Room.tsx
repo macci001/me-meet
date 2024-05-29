@@ -32,18 +32,29 @@ const Room = ({roomName} : {roomName: string}) => {
         }
     }
 
-    const removeTracks = () => {
+    const removeTracks = (type: "video" | "audio") => {
         const userId:number = Number (sessionStorage.getItem("userId"));
+        const roomId:number = Number (sessionStorage.getItem("roomId"));
+
+        const senderElement = document.getElementById("senderVideoRef") as unknown as HTMLVideoElement;
+        if(senderElement != null) {
+            senderElement.srcObject = null;
+        }
+
         pc.map((peer) => {
             const id = peer.userId;
             const peerPc = peer.pc;
             const senderId = Math.floor(id / 100);
             if (senderId == userId) {
-                peer.track.map((t) => {
-                    t.enabled = false;
+                peerPc.getSenders().map(sender => {
+                    if(sender.track?.kind == type) {
+                        peerPc.removeTrack(sender);
+                    }
                 })
+                if(socket) {
+                    socket.send(JSON.stringify({type: "closeTrack", toUserId: (id % 100), fromUserId: senderId, roomId: roomId, trackType: type}));
+                }
             }
-            
         })
     }
 
@@ -139,7 +150,8 @@ const Room = ({roomName} : {roomName: string}) => {
         
         <div className="w-[100vw] h-[7vh] bg-fuchsia-50 fixed bottom-0 flex justify-center items-center gap-[5vw]">
             <button onClick={addTracks} className="w-[10vh] h-[4vh] bg-fuchsia-200 shadow-inner rounded-[5vh] font-medium hover:bg-fuchsia-400">ON</button>
-            <button onClick={removeTracks} className="w-[10vh] h-[4vh] bg-fuchsia-200 shadow-inner rounded-[5vh] font-medium hover:bg-fuchsia-400">OFF</button>
+            <button onClick={() => removeTracks("video")} className="w-[10vh] h-[4vh] bg-fuchsia-200 shadow-inner rounded-[5vh] font-medium hover:bg-fuchsia-400">OFF Vid</button>
+            <button onClick={() => removeTracks("audio")} className="w-[10vh] h-[4vh] bg-fuchsia-200 shadow-inner rounded-[5vh] font-medium hover:bg-fuchsia-400">OFF Aud</button>
         </div>
     </div>
 }
