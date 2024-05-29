@@ -35,9 +35,9 @@ const Room = ({roomName} : {roomName: string}) => {
     const removeTracks = (type: "video" | "audio") => {
         const userId:number = Number (sessionStorage.getItem("userId"));
         const roomId:number = Number (sessionStorage.getItem("roomId"));
-
+        
         const senderElement = document.getElementById("senderVideoRef") as unknown as HTMLVideoElement;
-        if(senderElement != null) {
+        if(type=="video" && senderElement != null) {
             senderElement.srcObject = null;
         }
 
