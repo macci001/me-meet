@@ -1,62 +1,17 @@
 "use client"
 import { useEffect, useState, useRef, use } from "react";
 import { joinCallHandler, serverMessagesHandler } from "../handlers/SocketMessageHandlers";
+import { handleAddTracks, handleEndCall, handleRemoveTracks } from "../handlers/buttonClickHandlers";
 import ReceiverComponent from "./ReceiverCompnent";
 import SenderComponent from "./SenderComponent";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 const Room = ({roomName} : {roomName: string}) => {
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const [pc, setPc] = useState<Array<PeerConnection>>([]);
     const roomRef = useRef(null);
-
-    const addTracks = async () => {
-        const userId:number = Number (sessionStorage.getItem("userId"));
-        const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-        pc.map((peer) => {
-            const id = peer.userId;
-            const peerPc = peer.pc;
-            const senderId = Math.floor(id / 100);
-            if (senderId == userId) {
-                stream.getTracks().forEach((track) => {
-                    peerPc?.addTrack(track);
-                    peer.track.push(track);
-                });
-            }
-        })
-        
-        const senderComponent = document.getElementById("senderVideoRef") as unknown as HTMLVideoElement;
-        if(senderComponent != null ){
-            senderComponent.srcObject = new MediaStream(stream.getVideoTracks());
-            senderComponent.play();
-        }
-    }
-
-    const removeTracks = (type: "video" | "audio") => {
-        const userId:number = Number (sessionStorage.getItem("userId"));
-        const roomId:number = Number (sessionStorage.getItem("roomId"));
-        
-        const senderElement = document.getElementById("senderVideoRef") as unknown as HTMLVideoElement;
-        if(type=="video" && senderElement != null) {
-            senderElement.srcObject = null;
-        }
-
-        pc.map((peer) => {
-            const id = peer.userId;
-            const peerPc = peer.pc;
-            const senderId = Math.floor(id / 100);
-            if (senderId == userId) {
-                peerPc.getSenders().map(sender => {
-                    if(sender.track?.kind == type) {
-                        peerPc.removeTrack(sender);
-                    }
-                })
-                if(socket) {
-                    socket.send(JSON.stringify({type: "closeTrack", toUserId: (id % 100), fromUserId: senderId, roomId: roomId, trackType: type}));
-                }
-            }
-        })
-    }
+    const router = useRouter();
 
     useEffect(() => {
         const socket = new WebSocket("wss://smartlearner.pro");
@@ -77,7 +32,6 @@ const Room = ({roomName} : {roomName: string}) => {
             const userId:number = Number (sessionStorage.getItem("userId"));
             const roomId:number = Number (sessionStorage.getItem("roomId"));
             if(Math.floor(peer.userId / 100) == userId) {
-                console.log(`fromUserId: ${userId}, toUserId: ${peer.userId % 100}`);
                 peerPc.onnegotiationneeded = async () => {
                     const offer = await peerPc.createOffer();
                     await peerPc.setLocalDescription(offer);
@@ -149,9 +103,10 @@ const Room = ({roomName} : {roomName: string}) => {
         }
         
         <div className="w-[100vw] h-[7vh] bg-fuchsia-50 fixed bottom-0 flex justify-center items-center gap-[5vw]">
-            <button onClick={addTracks} className="w-[10vh] h-[4vh] bg-fuchsia-200 shadow-inner rounded-[5vh] font-medium hover:bg-fuchsia-400">ON</button>
-            <button onClick={() => removeTracks("video")} className="w-[10vh] h-[4vh] bg-fuchsia-200 shadow-inner rounded-[5vh] font-medium hover:bg-fuchsia-400">OFF Vid</button>
-            <button onClick={() => removeTracks("audio")} className="w-[10vh] h-[4vh] bg-fuchsia-200 shadow-inner rounded-[5vh] font-medium hover:bg-fuchsia-400">OFF Aud</button>
+            <button onClick={() => handleAddTracks(pc)} className="w-[10vh] h-[4vh] bg-fuchsia-200 shadow-inner rounded-[5vh] font-medium hover:bg-fuchsia-400">ON</button>
+            <button onClick={() => handleRemoveTracks(pc, socket, "video")} className="w-[10vh] h-[4vh] bg-fuchsia-200 shadow-inner rounded-[5vh] font-medium hover:bg-fuchsia-400">OFF Vid</button>
+            <button onClick={() => handleRemoveTracks(pc, socket, "audio")} className="w-[10vh] h-[4vh] bg-fuchsia-200 shadow-inner rounded-[5vh] font-medium hover:bg-fuchsia-400">OFF Aud</button>
+            <button onClick={() => handleEndCall(pc, socket, router, setPc)} className="w-[10vh] h-[4vh] bg-fuchsia-200 shadow-inner rounded-[5vh] font-medium hover:bg-fuchsia-400">End Call</button>
         </div>
     </div>
 }

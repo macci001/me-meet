@@ -18,6 +18,7 @@
     "./CreateAnswer": "./CreateAnswer.schema.ts",
     "./IceCandidate": "./IceCandidate.schema.ts",
     "./SendRequest": "./SendRequest.schema.ts",
-    "./CloseTrack": "./CloseTrack.schema.ts"
+    "./CloseTrack": "./CloseTrack.schema.ts",
+    "./CloseConnection": "./CloseConnection.schema.ts"
   }
 }

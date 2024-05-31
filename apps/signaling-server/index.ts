@@ -107,6 +107,20 @@ wss.on('connection', function connection(ws: WebSocket) {
       if(member) {
         member.ws?.send(JSON.stringify({type: message.type, toUserId: toUserId, fromUserId: fromUserId, trackType: trackType, roomId: roomId}))
       }
+    } else if(message.type == "closeConnection") {
+      const toUserId = message.toUserId;
+      const fromUserId = message.fromUserId;
+      const roomId = message.roomId;
+      const roomIndex = rooms.findIndex(room => room.roomId == roomId);
+      if(roomIndex === -1) {
+        return;
+      }
+      const room = rooms.at(roomIndex);
+      const members = room?.getMembers();
+      const member = members?.find((member) => member.id == toUserId);
+      if(member) {
+        member.ws?.send(JSON.stringify({type: message.type, toUserId: toUserId, fromUserId: fromUserId, roomId: roomId}))
+      }
     }
   });
 });

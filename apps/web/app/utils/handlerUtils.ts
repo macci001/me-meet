@@ -5,6 +5,7 @@ import { CreateAnswer } from "@repo/schema/CreateAnswer";
 import { IceCandidate } from "@repo/schema/IceCandidate";
 import { SendRequest } from "@repo/schema/SendRequest";
 import { CloseTrackSchema } from "@repo/schema/CloseTrack";
+import { CloseConnection } from "@repo/schema/CloseConnection";
 
 const getUserIdAndRoomId = () => {
     const userId: number = Number(sessionStorage.getItem("userId"));
@@ -81,6 +82,7 @@ export const createOfferUtil = (message: any, socket: WebSocket, pc: Array<PeerC
 
     await peerPc.setRemoteDescription(parse.data.sdp);
     sessionStorage.setItem("pc", JSON.stringify(pc));
+    console.log("answer created");
  }
 
  export const iceCandidateFromSenderUtil = async (message: any, pc: Array<PeerConnection>) => {
@@ -175,3 +177,25 @@ export const createOfferUtil = (message: any, socket: WebSocket, pc: Array<PeerC
      : document.getElementById(trackType + fromUserId.toString()) as unknown as HTMLAudioElement;
     targetElement && (targetElement.srcObject = null);
  }
+
+export const handleCloseConnectionUtil = (message: any, pc: Array<PeerConnection>, setPc: any) => {
+    const parsed = CloseConnection.safeParse(message);
+    if(!parsed.success) {
+        console.log("Error in prossesing the close connection request.");
+        console.log(parsed.error);
+        return;
+    }
+    const fromUserId = parsed.data.fromUserId;
+
+    pc.map((peer, index) => {
+        const peerPc = peer.pc;
+        const id = peer.userId;
+
+        if(fromUserId == Math.floor(id / 100) || fromUserId == (id % 100)) {
+            // receiving or sending from/to the close connection
+            pc.splice(index, 1);
+            setPc([...pc]);
+        }
+    })
+    sessionStorage.setItem("pc", JSON.stringify(pc));
+}
