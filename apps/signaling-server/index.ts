@@ -1,4 +1,4 @@
-import { WebSocket, WebSocketServer } from 'ws';
+import { WebSocket } from 'ws';
 import { Room } from './classes/Room';
 import express from "express";
 import http from "http";
@@ -117,10 +117,19 @@ wss.on('connection', function connection(ws: WebSocket) {
       }
       const room = rooms.at(roomIndex);
       const members = room?.getMembers();
-      const member = members?.find((member) => member.id == toUserId);
-      if(member) {
-        member.ws?.send(JSON.stringify({type: message.type, toUserId: toUserId, fromUserId: fromUserId, roomId: roomId}))
+      if(!members){
+        return;
       }
+
+      let updatedMembers = members;
+      members?.find((member, index) => {
+        if(member.id == toUserId) {
+          member.ws?.send(JSON.stringify({type: message.type, toUserId: toUserId, fromUserId: fromUserId, roomId: roomId}));
+          updatedMembers.splice(index, 1);
+          room?.setMembers(updatedMembers);          
+        }
+      })
+      
     }
   });
 });
