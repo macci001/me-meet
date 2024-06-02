@@ -122,14 +122,30 @@ wss.on('connection', function connection(ws: WebSocket) {
       }
 
       let updatedMembers = members;
-      members?.find((member, index) => {
+      members?.map((member, index) => {
         if(member.id == toUserId) {
           member.ws?.send(JSON.stringify({type: message.type, toUserId: toUserId, fromUserId: fromUserId, roomId: roomId}));
           updatedMembers.splice(index, 1);
           room?.setMembers(updatedMembers);          
         }
       })
-      
+    } else if(message.type == "resetSocket") {
+      const roomId = message.roomId;
+      const userId = message.userId;
+      const roomIndex = rooms.findIndex(room => room.roomId == roomId);
+      if(roomIndex === -1) {
+        return;
+      }
+      const room = rooms.at(roomIndex);
+      const members = room?.getMembers();
+      if(!members){
+        return;
+      }
+      members.map((member) => {
+        if(member.id == userId) {
+          member.ws = ws;
+        }
+      })
     }
   });
 });

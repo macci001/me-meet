@@ -2,7 +2,6 @@ import { messageType } from "@repo/schema/MessageType";
 import { createAnswerUtil, createOfferUtil, iceCandidateFromReceiverUtil, iceCandidateFromSenderUtil, joinedUtil, requestToSendUtil, handleCloseTrackUtil, handleCloseConnectionUtil } from "../utils/handlerUtils";
 
 export const joinCallHandler = (socket: WebSocket, roomName:string) => {
-    sessionStorage.clear();
     const userId:number = Number (sessionStorage.getItem("userId") ? sessionStorage.getItem("userId") : -1);
     const roomId:number = Number (sessionStorage.getItem("roomId") ? sessionStorage.getItem("roomId") : -1);
     if(userId===-1 || roomId===-1){
@@ -13,6 +12,8 @@ export const joinCallHandler = (socket: WebSocket, roomName:string) => {
             type: messageType.JOIN
         }
         socket.send(JSON.stringify(body));
+    } else {
+        socket.send(JSON.stringify({"type": "resetSocket", "userId": userId, "roomId": roomId}));
     }
 }
 

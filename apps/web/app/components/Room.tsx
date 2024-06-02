@@ -1,5 +1,5 @@
 "use client"
-import { useEffect, useState, useRef, use } from "react";
+import { useEffect, useState, useRef } from "react";
 import { joinCallHandler, serverMessagesHandler } from "../handlers/SocketMessageHandlers";
 import { handleAddTracks, handleEndCall, handleRemoveTracks } from "../handlers/buttonClickHandlers";
 import ReceiverComponent from "./ReceiverCompnent";
@@ -7,22 +7,69 @@ import SenderComponent from "./SenderComponent";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 
+const connectSocket = async (
+    setSocket: any,
+    pc: Array<PeerConnection>,
+    setPc: any,
+    roomName: string,
+    setIsServerCrashed: any
+) => {
+    const userId:number = Number (sessionStorage.getItem("userId"));
+    const socket = new WebSocket("wss://smartlearner.pro");
+    await setSocket(socket);
+
+    const roomNameFinal = !roomName ? "hello" : roomName;
+    socket.onopen = () => {
+        setIsServerCrashed(false);
+        joinCallHandler(socket, roomNameFinal)
+    };
+    
+    socket.onmessage = async (event) => {
+        const message = JSON.parse(event.data);
+        console.log(message.type);
+        serverMessagesHandler(socket, pc, message, setPc);
+    }
+
+    socket.onerror = () => {
+        console.log("some error in connection with ws.");
+        socket.close();
+    }
+
+    socket.onclose = () => {
+        setIsServerCrashed(true);
+        pc.map((peer, index) => {
+            const id = peer.userId;            
+            sessionStorage.clear();
+            if(id != Math.floor(id / 100)) {
+                pc.splice(index, 1);
+                setPc([...pc]);
+                return;
+            }
+            const newPc:PeerConnection = {
+                pc: new RTCPeerConnection(),
+                track: [],
+                userId: id
+            }
+            pc.splice(index, 1, newPc);
+            sessionStorage.setItem("pc", JSON.stringify(pc));
+        })
+        setTimeout(() => {connectSocket(setSocket, pc, setPc, roomName, setIsServerCrashed)}, 2000);
+    }
+    await setSocket(socket);
+}
+
 const Room = ({roomName} : {roomName: string}) => {
     const [socket, setSocket] = useState<WebSocket | null>(null);
     const [pc, setPc] = useState<Array<PeerConnection>>([]);
+    const [isServerCrashed, setIsServerCrashed] = useState<boolean>(false);
     const roomRef = useRef(null);
     const router = useRouter();
 
     useEffect(() => {
-        const socket = new WebSocket("wss://smartlearner.pro");
-        setSocket(socket);
-        const roomNameFinal = !roomName ? "hello" : roomName;
-        socket.onopen = () => joinCallHandler(socket, roomNameFinal);
-        
-        socket.onmessage = async (event) => {
-            const message = JSON.parse(event.data);
-            serverMessagesHandler(socket, pc, message, setPc);
+        if(!socket) {
+            sessionStorage.clear();
         }
+        connectSocket(setSocket, pc, setPc, roomName, setIsServerCrashed);
     }, []);
 
     useEffect(()=> {
@@ -79,7 +126,15 @@ const Room = ({roomName} : {roomName: string}) => {
                 }
             }
         })
-    }, [pc]);
+    }, [pc, socket]);
+
+
+
+    if (isServerCrashed) {
+        return (<div className="h-[50vh] w-[100vw] bg-fuchsia-200 flex justify-center items-center">
+            Error in Connecting to the server. Please Wait...
+        </div>)
+    }
 
     return <div>
         {
